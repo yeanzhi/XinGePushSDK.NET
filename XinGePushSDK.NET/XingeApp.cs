@@ -2,9 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using XinGePushSDK.NET.Res;
 using XinGePushSDK.NET.Utility;
 
@@ -12,30 +10,31 @@ namespace XinGePushSDK.NET
 {
     public class XingeApp
     {
-        private string accessId;
-        private string secretKey;
-        public uint valid_time;
+        private readonly string _accessId;
+        private readonly string _secretKey;
+        public uint ValidTime;
+
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="accessId">accessId</param>
-        /// <param name="secretKey">secretKey</param>
-        /// <param name="valid_time">配合timestamp确定请求的有效期，单位为秒，
+        /// <param name="accessId">_accessId</param>
+        /// <param name="secretKey">_secretKey</param>
+        /// <param name="validTime">配合timestamp确定请求的有效期，单位为秒，
         /// 最大值为600。若不设置此参数或参数值非法，则按默认值600秒计算有效期</param>
-        public XingeApp(string accessId, string secretKey, uint valid_time=600)
+        public XingeApp(string accessId, string secretKey, uint validTime = 600)
         {
             if (string.IsNullOrEmpty(accessId))
             {
-                throw new ArgumentNullException("accessId");
+                throw new ArgumentNullException(nameof(accessId));
             }
             if (string.IsNullOrEmpty(secretKey))
             {
-                throw new ArgumentNullException("secretKey");
+                throw new ArgumentNullException(nameof(secretKey));
             }
-            this.valid_time = valid_time;
-            this.accessId = accessId;
-            this.secretKey = secretKey;
+            ValidTime = validTime;
+            _accessId = accessId;
+            _secretKey = secretKey;
         }
 
         /// <summary>
@@ -48,20 +47,20 @@ namespace XinGePushSDK.NET
         {
             if (parameters == null)
             {
-                throw new ArgumentNullException("parameters");
+                throw new ArgumentNullException(nameof(parameters));
             }
             if (string.IsNullOrEmpty(url))
             {
-                throw new ArgumentNullException("url");
+                throw new ArgumentNullException(nameof(url));
             }
             try
             {
-                parameters.Add("access_id", accessId);
+                parameters.Add("access_id", _accessId);
                 parameters.Add("timestamp", ((int)(DateTime.Now - TimeZone.CurrentTimeZone.ToLocalTime(
-                new System.DateTime(1970, 1, 1))).TotalSeconds).ToString());
-                parameters.Add("valid_time", valid_time.ToString());
-                string md5sing = SignUtility.GetSignature(parameters, this.secretKey, url);
-                parameters.Add("sign", md5sing);
+                new DateTime(1970, 1, 1))).TotalSeconds).ToString());
+                parameters.Add("valid_time", ValidTime.ToString());
+                string md5Sing = SignUtility.GetSignature(parameters, _secretKey, url);
+                parameters.Add("sign", md5Sing);
                 var res = HttpWebResponseUtility.CreatePostHttpResponse(url, parameters, null, null, Encoding.UTF8, null);
                 var resstr = res.GetResponseStream();
                 System.IO.StreamReader sr = new System.IO.StreamReader(resstr);
@@ -77,22 +76,22 @@ namespace XinGePushSDK.NET
         /// <summary>
         /// 推送到 单个设备 IOS
         /// </summary>
-        /// <param name="DeviceToken"></param>
+        /// <param name="deviceToken"></param>
         /// <param name="msg"></param>
         /// <param name="environment"></param>
         /// <returns>返回值json反序列化后的类</returns>
-        public Ret PushToSingleDevice(string DeviceToken, Msg_IOS msg, uint environment)
+        public Ret PushToSingleDevice(string deviceToken, Msg_IOS msg, uint environment)
         {
             if (msg == null)
             {
-                throw new ArgumentNullException("msg");
+                throw new ArgumentNullException(nameof(msg));
             }
-            if (string.IsNullOrEmpty(DeviceToken))
+            if (string.IsNullOrEmpty(deviceToken))
             {
-                throw new ArgumentNullException("DeviceToken");
+                throw new ArgumentNullException(nameof(deviceToken));
             }
             IDictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters.Add("device_token", DeviceToken);
+            parameters.Add("device_token", deviceToken);
             parameters.Add("send_time", msg.send_time);
             parameters.Add("environment", environment.ToString());
             if (msg.expire_time.HasValue)
@@ -104,24 +103,24 @@ namespace XinGePushSDK.NET
             return CallRestful(XinGeConfig.RESTAPI_PUSHSINGLEDEVICE, parameters);
         }
 
-       /// <summary>
+        /// <summary>
         /// 推送到 单个设备 安卓
-       /// </summary>
-       /// <param name="DeviceToken"></param>
-       /// <param name="msg"></param>
+        /// </summary>
+        /// <param name="deviceToken"></param>
+        /// <param name="msg"></param>
         /// <returns>返回值json反序列化后的类</returns>
-        public Ret PushToSingleDevice(string DeviceToken, Msg_Android msg)
+        public Ret PushToSingleDevice(string deviceToken, Msg_Android msg)
         {
             if (msg == null)
             {
-                throw new ArgumentNullException("msg");
+                throw new ArgumentNullException(nameof(msg));
             }
-            if (string.IsNullOrEmpty(DeviceToken))
+            if (string.IsNullOrEmpty(deviceToken))
             {
-                throw new ArgumentNullException("DeviceToken");
+                throw new ArgumentNullException(nameof(deviceToken));
             }
             IDictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters.Add("device_token", DeviceToken);
+            parameters.Add("device_token", deviceToken);
             parameters.Add("send_time", msg.send_time);
             parameters.Add("multi_pkg", msg.multi_pkg.ToString());
             if (msg.expire_time.HasValue)
@@ -141,23 +140,23 @@ namespace XinGePushSDK.NET
         /// <summary>
         /// 推送到 单个用户 IOS
         /// </summary>
-        /// <param name="Account">账号</param>
+        /// <param name="account">账号</param>
         /// <param name="msg">信息</param>
         /// <param name="environment">推送环境(开发or在线)</param>
         /// <returns>返回值json反序列化后的类</returns>
-        public Ret PushToAccount(string Account, Msg_IOS msg, uint environment)
+        public Ret PushToAccount(string account, Msg_IOS msg, uint environment)
         {
             if (msg == null)
             {
-                throw new ArgumentNullException("msg");
+                throw new ArgumentNullException(nameof(msg));
             }
-            if (string.IsNullOrEmpty(Account))
+            if (string.IsNullOrEmpty(account))
             {
-                throw new ArgumentNullException("Account");
+                throw new ArgumentNullException(nameof(account));
             }
-            
+
             IDictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters.Add("account", Account);
+            parameters.Add("account", account);
             parameters.Add("send_time", msg.send_time);
             parameters.Add("environment", environment.ToString());
             if (msg.expire_time.HasValue)
@@ -172,21 +171,21 @@ namespace XinGePushSDK.NET
         /// <summary>
         /// 推送到 单个用户 Android
         /// </summary>
-        /// <param name="Account"></param>
+        /// <param name="account"></param>
         /// <param name="msg"></param>
         /// <returns>返回值json反序列化后的类</returns>
-        public Ret PushToAccount(string Account, Msg_Android msg)
+        public Ret PushToAccount(string account, Msg_Android msg)
         {
             if (msg == null)
             {
-                throw new ArgumentNullException("msg");
+                throw new ArgumentNullException(nameof(msg));
             }
-            if (string.IsNullOrEmpty(Account))
+            if (string.IsNullOrEmpty(account))
             {
-                throw new ArgumentNullException("Account");
+                throw new ArgumentNullException(nameof(account));
             }
             IDictionary<string, string> parameters = new Dictionary<string, string>();
-            parameters.Add("account", Account);
+            parameters.Add("account", account);
             parameters.Add("send_time", msg.send_time);
             parameters.Add("multi_pkg", msg.multi_pkg.ToString());
             if (msg.expire_time.HasValue)
@@ -208,15 +207,15 @@ namespace XinGePushSDK.NET
         {
             if (msg == null)
             {
-                throw new ArgumentNullException("msg");
+                throw new ArgumentNullException(nameof(msg));
             }
             if (accountList.Count == 0)
             {
-                throw new ArgumentNullException("accountList");
+                throw new ArgumentNullException(nameof(accountList));
             }
             if (accountList.Count > 100)
             {
-                throw new ArgumentOutOfRangeException("accountList");
+                throw new ArgumentOutOfRangeException(nameof(accountList));
             }
             IDictionary<string, string> parameters = new Dictionary<string, string>();
             parameters.Add("account_list", JsonConvert.SerializeObject(accountList));
@@ -241,15 +240,15 @@ namespace XinGePushSDK.NET
         {
             if (msg == null)
             {
-                throw new ArgumentNullException("msg");
+                throw new ArgumentNullException(nameof(msg));
             }
             if (accountList.Count == 0)
             {
-                throw new ArgumentNullException("accountList");
+                throw new ArgumentNullException(nameof(accountList));
             }
             if (accountList.Count > 100)
             {
-                throw new ArgumentOutOfRangeException("accountList");
+                throw new ArgumentOutOfRangeException(nameof(accountList));
             }
             IDictionary<string, string> parameters = new Dictionary<string, string>();
             parameters.Add("account_list", JsonConvert.SerializeObject(accountList));
@@ -266,7 +265,7 @@ namespace XinGePushSDK.NET
 
 
 
-       
+
         /// <summary>
         /// 推送到所有ios设备
         /// </summary>
@@ -276,7 +275,7 @@ namespace XinGePushSDK.NET
         {
             if (msg == null)
             {
-                throw new ArgumentNullException("msg");
+                throw new ArgumentNullException(nameof(msg));
             }
             IDictionary<string, string> parameters = new Dictionary<string, string>();
             parameters.Add("message_type", msg.message_type.ToString());
@@ -308,7 +307,7 @@ namespace XinGePushSDK.NET
         {
             if (msg == null)
             {
-                throw new ArgumentNullException("msg");
+                throw new ArgumentNullException(nameof(msg));
             }
             IDictionary<string, string> parameters = new Dictionary<string, string>();
             parameters.Add("message_type", msg.message_type.ToString());
@@ -337,11 +336,11 @@ namespace XinGePushSDK.NET
         /// <param name="tagOp"></param>
         /// <param name="msg"></param>
         /// <returns>返回值json反序列化后的类</returns>
-        public Ret pushTags(List<String> tagList, String tagOp, Msg_Android msg)
+        public Ret PushTags(List<String> tagList, String tagOp, Msg_Android msg)
         {
             if (tagList == null || tagList.Count == 0)
             {
-                throw new ArgumentNullException("tagList");
+                throw new ArgumentNullException(nameof(tagList));
             }
             IDictionary<string, string> parameters = new Dictionary<string, string>();
             parameters.Add("message", msg.ToJson());
@@ -375,11 +374,11 @@ namespace XinGePushSDK.NET
         /// <param name="msg"></param>
         /// <param name="environment"></param>
         /// <returns>返回值json反序列化后的类</returns>
-        public Ret pushTags(List<String> tagList, String tagOp, Msg_IOS msg, uint environment)
+        public Ret PushTags(List<String> tagList, String tagOp, Msg_IOS msg, uint environment)
         {
             if (tagList == null || tagList.Count == 0)
             {
-                throw new ArgumentNullException("tagList");
+                throw new ArgumentNullException(nameof(tagList));
             }
             IDictionary<string, string> parameters = new Dictionary<string, string>();
             parameters.Add("message", msg.ToJson());
@@ -479,19 +478,17 @@ namespace XinGePushSDK.NET
 
             if (tagTokenPairs == null)
             {
-                throw new ArgumentNullException("tagTokenPairs");
+                throw new ArgumentNullException(nameof(tagTokenPairs));
             }
             if (tagTokenPairs.Count > 20)
             {
-                throw new ArgumentOutOfRangeException("tagTokenPairs");
+                throw new ArgumentOutOfRangeException(nameof(tagTokenPairs));
             }
             IDictionary<string, string> parameters = new Dictionary<string, string>();
             JArray jarray = new JArray();
             foreach (var item in tagTokenPairs)
             {
-                JArray ja = new JArray();
-                ja.Add(item.Key);
-                ja.Add(item.Value);
+                JArray ja = new JArray {item.Key, item.Value};
                 jarray.Add(ja);
             }
             parameters.Add("tag_token_list", jarray.ToString());
@@ -534,5 +531,52 @@ namespace XinGePushSDK.NET
             parameters.Add("tag", tag);
             return CallRestful(XinGeConfig.RESTAPI_QUERYTAGTOKENNUM, parameters);
         }
+
+
+
+
+
+        /// <summary>
+        /// 删除应用中某个account映射的某个token
+        /// </summary>
+        /// <param name="account">账号，可以是邮箱号、手机号、QQ号等任意形式的业务帐号</param>
+        /// <param name="deviceToken">token，设备的唯一识别ID</param>
+        /// <returns></returns>
+        public Ret DelAccountToken(string account, string deviceToken)
+        {
+            if (string.IsNullOrEmpty(account))
+            {
+                throw new ArgumentNullException(nameof(account));
+            }
+            if (string.IsNullOrEmpty(deviceToken))
+            {
+                throw new ArgumentNullException(nameof(deviceToken));
+            }
+            IDictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters.Add("account", account);
+            parameters.Add("device_token", deviceToken);
+
+            return CallRestful(XinGeConfig.RESTAPI_DELAPPACCOUNTTOKENS, parameters);
+        }
+
+        /// <summary>
+        /// 删除应用中某account映射的所有token
+        /// </summary>
+        /// <param name="account">账号</param>
+        /// <returns></returns>
+        public Ret DelAccount(string account)
+        {
+            if (string.IsNullOrEmpty(account))
+            {
+                throw new ArgumentNullException(nameof(account));
+            }
+
+            IDictionary<string, string> parameters = new Dictionary<string, string>();
+            parameters.Add("account", account);
+
+            return CallRestful(XinGeConfig.RESTAPI_DELAPPACCOUNTALLTOKENS, parameters);
+        }
+
+
     }
 }

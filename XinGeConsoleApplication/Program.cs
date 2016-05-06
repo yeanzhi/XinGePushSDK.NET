@@ -34,8 +34,8 @@ namespace XinGeConsoleApplication
             xinge.PushAllDevice(mandroid);
             xinge.PushAllDevice(mios,XinGeConfig.IOSENV_DEV);
             //Push消息（包括通知和透传消息）给tags指定的设备
-            xinge.pushTags(new List<string>() { "tag1", "tag1" }, "OR", mandroid);
-            xinge.pushTags(new List<string>() { "tag1", "tag1" }, "OR", mios, XinGeConfig.IOSENV_DEV);
+            xinge.PushTags(new List<string>() { "tag1", "tag1" }, "OR", mandroid);
+            xinge.PushTags(new List<string>() { "tag1", "tag1" }, "OR", mios, XinGeConfig.IOSENV_DEV);
             //查询群发消息发送状态
             xinge.QueryPushStatus(new List<string>() { "pushId1", "pushId1" });
             //查询应用覆盖的设备数
